@@ -2,13 +2,13 @@
 
 Dynamic tool discovery and selection for Spring AI, enabling LLMs to work efficiently with large tool libraries by discovering tools on-demand instead of loading all definitions upfront.
 
-## The Problem
+**The Problem**
 
 As AI agents connect to more services—Slack, GitHub, Jira, MCP servers—tool libraries grow rapidly. A typical multi-server setup can easily have 50+ tools consuming **55,000+ tokens** before any conversation starts. Tool selection accuracy also degrades when models face 30+ similarly-named tools.
 
-## The Solution
+<img style="fdisplay: block; margin: 0px auto; padding: 20px;" src="https://github.com/spring-io/spring-io-static/blob/main/blog/tzolov/20251208/spring-ai-tool-search-tool-calling-flow.png?raw=true" width="350" align="left"/>
 
-<img style="fdisplay: block; margin: 0px auto; padding: 10px;" src="https://github.com/spring-io/spring-io-static/blob/main/blog/tzolov/20251208/spring-ai-tool-search-tool-calling-flow.png?raw=true" width="300" align="left"/>
+**The Solution**
 
 This project implements the **[Tool Search Tool](https://www.anthropic.com/engineering/advanced-tool-use)** pattern for Spring AI:
 - Model receives only a search tool initially (minimal tokens)
@@ -17,6 +17,8 @@ This project implements the **[Tool Search Tool](https://www.anthropic.com/engin
 - Model invokes discovered tools to complete the task
 
 **Result:** Significant token savings while maintaining access to thousands of tools.
+
+
 
 ## Project Structure
 
