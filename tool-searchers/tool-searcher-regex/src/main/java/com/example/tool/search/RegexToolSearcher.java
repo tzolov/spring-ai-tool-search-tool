@@ -30,17 +30,16 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import com.logaritex.spring.ai.tool.search.SearchType;
+import com.logaritex.spring.ai.tool.search.ToolReference;
 import com.logaritex.spring.ai.tool.search.ToolSearcher;
 import com.logaritex.spring.ai.tool.search.ToolSearchRequest;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse.SearchMetadata;
-import com.logaritex.spring.ai.tool.search.ToolSearchResponse.ToolReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Regex-based tool searcher for pattern-based matching of tool names and
- * descriptions.
+ * Regex-based tool searcher for pattern-based matching of tool names and descriptions.
  * <p>
  * This class provides pattern-based search capabilities using Java regular expressions.
  * The query parameter contains natural language which is converted into regex patterns
@@ -145,11 +144,11 @@ public class RegexToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	@Override
-	public void indexTool(String sessionId, String toolName, String toolDescription) {
+	public void indexTool(String sessionId, ToolReference toolReference) {
 		String id = String.valueOf(counter.getAndIncrement());
 		SessionIndex sessionIndex = getOrCreateSessionIndex(sessionId);
-		sessionIndex.addTool(new ToolEntry(id, toolName, toolDescription));
-		logger.debug("Added tool '{}' to session '{}' with id '{}'", toolName, sessionId, id);
+		sessionIndex.addTool(new ToolEntry(id, toolReference.toolName(), toolReference.summary()));
+		logger.debug("Added tool '{}' to session '{}' with id '{}'", toolReference.toolName(), sessionId, id);
 	}
 
 	@Override

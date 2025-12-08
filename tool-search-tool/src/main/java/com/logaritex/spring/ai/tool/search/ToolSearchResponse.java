@@ -69,49 +69,6 @@ public record ToolSearchResponse(List<ToolReference> toolReferences, Integer tot
 
 	@JsonInclude(JsonInclude.Include.NON_ABSENT)
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public record ToolReference(String toolName, Double relevanceScore, String summary) {
-
-		public static Builder builder() {
-			return new Builder();
-		}
-
-		public static class Builder {
-
-			private String toolName;
-
-			private Double relevanceScore;
-
-			private String summary;
-
-			public Builder toolName(String toolName) {
-				this.toolName = toolName;
-				return this;
-			}
-
-			public Builder relevanceScore(Double relevanceScore) {
-				this.relevanceScore = relevanceScore;
-				return this;
-			}
-
-			public Builder relevanceScore(Float relevanceScore) {
-				this.relevanceScore = relevanceScore.doubleValue();
-				return this;
-			}
-
-			public Builder summary(String summary) {
-				this.summary = summary;
-				return this;
-			}
-
-			public ToolReference build() {
-				return new ToolReference(this.toolName, this.relevanceScore, this.summary);
-			}
-
-		}
-	}
-
-	@JsonInclude(JsonInclude.Include.NON_ABSENT)
-	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record SearchMetadata(SearchType searchType, String query, Long searchTimeMs) {
 
 		public static Builder builder() {

@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.logaritext.spring.ai.tool.search</groupId>
-	<artifactId>tool-search-tool-app</artifactId>
+	<artifactId>pre-select-tool-demo</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>recursive-advisor-demo</name>
+	<name>pre-select-tool-demo</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>

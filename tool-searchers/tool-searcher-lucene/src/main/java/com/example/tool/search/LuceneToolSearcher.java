@@ -24,11 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.logaritex.spring.ai.tool.search.SearchType;
+import com.logaritex.spring.ai.tool.search.ToolReference;
 import com.logaritex.spring.ai.tool.search.ToolSearcher;
 import com.logaritex.spring.ai.tool.search.ToolSearchRequest;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse.SearchMetadata;
-import com.logaritex.spring.ai.tool.search.ToolSearchResponse.ToolReference;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -56,8 +56,8 @@ import org.slf4j.LoggerFactory;
  * Lucene-based tool searcher for indexing and searching tool descriptions.
  * <p>
  * This class provides full-text search capabilities for tool metadata using Apache
- * Lucene's in-memory index. Entries are grouped by sessionId and retrieval is
- * filtered by the provided sessionId.
+ * Lucene's in-memory index. Entries are grouped by sessionId and retrieval is filtered by
+ * the provided sessionId.
  *
  * @author Christian Tzolov
  */
@@ -105,6 +105,7 @@ public class LuceneToolSearcher implements Closeable, ToolSearcher {
 			this.writer.close();
 			this.directory.close();
 		}
+
 	}
 
 	/**
@@ -159,8 +160,9 @@ public class LuceneToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	@Override
-	public void indexTool(String sessionId, String toolName, String toolDescription) {
-		this.add(sessionId, String.valueOf(counter.getAndIncrement()), toolName, toolDescription);
+	public void indexTool(String sessionId, ToolReference toolReference) {
+		this.add(sessionId, String.valueOf(counter.getAndIncrement()), toolReference.toolName(),
+				toolReference.summary());
 	}
 
 	@Override
@@ -201,8 +203,8 @@ public class LuceneToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	/**
-	 * Commits all pending changes to all session indexes. Call this after batch
-	 * additions for better performance.
+	 * Commits all pending changes to all session indexes. Call this after batch additions
+	 * for better performance.
 	 */
 	public void commit() {
 		for (Map.Entry<String, SessionIndex> entry : this.sessionIndexes.entrySet()) {
@@ -218,8 +220,8 @@ public class LuceneToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	/**
-	 * Commits all pending changes to the index for the specified session. Call this
-	 * after batch additions for better performance.
+	 * Commits all pending changes to the index for the specified session. Call this after
+	 * batch additions for better performance.
 	 * @param sessionId the session ID to commit changes for
 	 */
 	public void commit(String sessionId) {
@@ -236,8 +238,7 @@ public class LuceneToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	/**
-	 * Searches for tools matching the query string within the specified session's
-	 * index.
+	 * Searches for tools matching the query string within the specified session's index.
 	 * @param sessionIndex the session index to search
 	 * @param queryString the search query
 	 * @param maxResults maximum number of results to return

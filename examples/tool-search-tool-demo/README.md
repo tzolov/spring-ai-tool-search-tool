@@ -1,80 +1,143 @@
-# Spring AI Recursive Advisors Demo
+# Tool Search Tool Demo
 
-A Spring Boot demonstration project showcasing the new **Recursive Advisors** feature in Spring AI 1.1.0-M4+, which enables looping through advisor chains multiple times for iterative AI workflows.
+A Spring Boot demonstration project showcasing the **Tool Search Tool** pattern for Spring AI - enabling dynamic, on-demand tool discovery instead of loading all tool definitions upfront.
 
 ## Overview
 
-This project demonstrates the **Recursive Advisors** pattern using Spring AI's `ToolCallAdvisor` - a built-in recursive advisor that handles tool calling loops within the advisor chain. Key features shown:
+This demo shows how the `ToolSearchToolCallAdvisor` allows an LLM to discover and use tools on-demand, significantly reducing token usage when working with large tool libraries.
 
 ## Prerequisites
 
 - Java 17 or higher
 - Maven 3.6+
-- Anthropic API key
+- API key for your preferred LLM (configured in `application.properties`)
+
+## Running the Demo
+
+```bash
+cd examples/tool-search-tool-demo
+mvn spring-boot:run
+```
 
 ## Key Components
 
-### 1. Main Application (`RecursiveAdvisorDemoApplication.java`)
+### 1. Main Application (`Application.java`)
 
-The main class demonstrates the recursive advisor pattern:
+Demonstrates the Tool Search Tool pattern:
 
 ```java
-ChatClient chatClient = chatClientBuilder
-    .defaultTools(new MyTools())
-    .defaultAdvisors(
-        ToolCallAdvisor.builder().build(),  // Built-in recursive advisor
-        new MyLogAdvisor())                 // Custom logging advisor
+var toolSearchToolCallAdvisor = ToolSearchToolCallAdvisor.builder()
+    .toolSearcher(toolSearcher)
     .build();
+
+ChatClient chatClient = chatClientBuilder
+    .defaultTools(new MyTools())  // Tools registered but NOT sent to LLM initially
+    .defaultAdvisors(toolSearchToolCallAdvisor)
+    .defaultAdvisors(new MyLoggingAdvisor())
+    .build();
+
+var answer = chatClient.prompt("""
+    Help me plan what to wear today in Landsmeer, NL.
+    Please suggest clothing shops that are open right now in the area.
+    """).call().content();
 ```
 
-Key aspects:
-- **ToolCallAdvisor**: Built-in recursive advisor that loops until all tool calls are completed
-    - **User-Controlled Tool Execution**: Tools execute within the advisor chain, not inside the model
-- **Advisor Ordering**: Multiple advisors working together in the chain
+**Key aspects:**
+- `ToolSearchToolCallAdvisor`: Intercepts tool calling to enable on-demand discovery
+- Tools are indexed but NOT sent to the LLM initially - only the search tool is provided
+- LLM discovers tools by calling `toolSearchTool` as needed
 
-### 2. Custom Tools (`MyTools` class)
+### 2. Sample Tools (`MyTools` class)
 
 ```java
-@Tool(description = "Get the current weather for a given location")
-public String weather(String location) {
+@Tool(description = "Get the current weather for a given location and at a given time")
+public String weather(String location, String atTime) {
     return "The current weather in " + location + " is sunny with a temperature of 25°C.";
 }
-```
 
-Demonstrates how to create custom tools that the AI can call during conversations.
+@Tool(description = "Get of clothing shops names for a given location")
+public List<String> clothing(String location, String openAtTime) {
+    return List.of("Foo", "Bar", "Baz");
+}
 
-### 3. Custom Advisor (`MyLogAdvisor` class)
-
-Implements a non-recursive advisor to demonstrate observability in advisor chain flows:
-
-```java
-static class MyLogAdvisor implements BaseAdvisor {
-    @Override
-    public ChatClientRequest before(ChatClientRequest request, AdvisorChain chain) {
-        print("REQUEST", request.prompt().getInstructions());
-        return request;
-    }
-    
-    @Override
-    public ChatClientResponse after(ChatClientResponse response, AdvisorChain chain) {
-        print("RESPONSE", response.chatResponse().getResults());
-        return response;
-    }
+@Tool(description = "Provides the current date and time for a given location")
+public String currentTime(String location) {
+    return LocalDateTime.now().toString();
 }
 ```
 
-This advisor logs each iteration as the `ToolCallAdvisor` loops through tool executions, providing visibility into the recursive process.
+These tools are discovered on-demand by the LLM, not loaded upfront.
 
-## Expected output 
+### 3. Configuration (`Config.java`)
+
+Configures the `ToolSearcher` implementation. Options include:
+- `VectorToolSearcher` - Semantic search using embeddings
+- `LuceneToolSearcher` - Keyword-based full-text search
+- `RegexToolSearcher` - Pattern matching
+
+### 4. Logging Advisor (`MyLoggingAdvisor`)
+
+Logs each iteration to show the progressive tool discovery:
+
+```java
+@Override
+public ChatClientRequest before(ChatClientRequest request, AdvisorChain chain) {
+    print("REQUEST", request.prompt().getInstructions());
+    return request;
+}
+```
+
+## Expected Flow
+
+When running the demo, you'll see the tool discovery process:
+
+1. **First Request** - LLM receives only `toolSearchTool`
+   - LLM calls `toolSearchTool(query="current time")` → discovers `currentTime`
+
+2. **Second Request** - LLM sees `toolSearchTool` + `currentTime`
+   - LLM calls `currentTime("Landsmeer, NL")` → returns current time
+   - LLM calls `toolSearchTool(query="weather")` → discovers `weather`
+
+3. **Third Request** - LLM sees `toolSearchTool` + `currentTime` + `weather`
+   - LLM calls `weather("Landsmeer, NL", "...")` → returns weather
+   - LLM calls `toolSearchTool(query="clothing shops")` → discovers `clothing`
+
+4. **Fourth Request** - LLM sees all discovered tools
+   - LLM calls `clothing("Landsmeer, NL", "...")` → returns shop list
+
+5. **Final Response** - LLM generates clothing recommendations
+
+## Sample Output
 
 ```
-REQUEST:[{"messageType":"USER","metadata":{"messageType":"USER"},"media":[],"text":"What is current weather in Paris?"}]
+REQUEST: TOOLS: ["toolSearchTool"]
+text: "Help me plan what to wear today in Landsmeer, NL..."
 
-RESPONSE:[{"metadata":{"finishReason":"tool_use","contentFilters":[],"empty":true},"output":{"messageType":"ASSISTANT","metadata":{"messageType":"ASSISTANT"},"toolCalls":[],"media":[],"text":"I'll check the current weather in Paris for you."}},{"metadata":{"finishReason":"tool_use","contentFilters":[],"empty":true},"output":{"messageType":"ASSISTANT","metadata":{"messageType":"ASSISTANT"},"toolCalls":[{"id":"toolu_01HNde1Z7mwtwXh4qiK3tavZ","type":"function","name":"weather","arguments":"{\"location\":\"Paris\"}"}],"media":[],"text":""}}]
+RESPONSE:
+- toolSearchTool({"query":"current time and date"})
 
-REQUEST:[{"messageType":"USER","metadata":{"messageType":"USER"},"media":[],"text":"What is current weather in Paris?"},{"messageType":"ASSISTANT","metadata":{"messageType":"ASSISTANT"},"toolCalls":[{"id":"toolu_01HNde1Z7mwtwXh4qiK3tavZ","type":"function","name":"weather","arguments":"{\"location\":\"Paris\"}"}],"media":[],"text":""},{"messageType":"TOOL","metadata":{"messageType":"TOOL"},"responses":[{"id":"toolu_01HNde1Z7mwtwXh4qiK3tavZ","name":"weather","responseData":"\"The current weather in Paris is sunny with a temperature of 25°C.\""}],"text":""}]
+REQUEST: TOOLS: ["toolSearchTool","currentTime","weather"]
+- toolSearchTool -> ["currentTime","weather"]
 
-RESPONSE:[{"metadata":{"finishReason":"end_turn","contentFilters":[],"empty":true},"output":{"messageType":"ASSISTANT","metadata":{"messageType":"ASSISTANT"},"toolCalls":[],"media":[],"text":"The current weather in Paris is sunny with a temperature of 25°C."}}]
+RESPONSE:
+- currentTime({"location":"Landsmeer, NL"})
 
-The current weather in Paris is sunny with a temperature of 25°C.
+REQUEST: TOOLS: ["toolSearchTool","currentTime","weather"]
+- currentTime -> "2025-12-08T12:30:26"
+
+RESPONSE:
+- weather({"location":"Landsmeer, NL","atTime":"2025-12-08T12:30"})
+- toolSearchTool({"query":"clothing shops"})
+
+...
+
+FINAL:
+"Based on the sunny 25°C weather in Landsmeer, NL, I recommend light layers.
+Here are clothing shops open now: Foo, Bar, Baz..."
 ```
+
+## Related Documentation
+
+- [Tool Search Tool README](../../tool-search-tool/README.md)
+- [Tool Searchers README](../../tool-searchers/README.md)
+- [Spring AI Recursive Advisors](https://docs.spring.io/spring-ai/reference/api/advisors-recursive.html)

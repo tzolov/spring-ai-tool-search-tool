@@ -35,10 +35,9 @@ public interface ToolSearcher {
 	/**
 	 * Registers a tool in the search index for the specified session.
 	 * @param sessionId the session identifier for tool isolation
-	 * @param toolName the unique name of the tool
-	 * @param toolDescription the description of the tool (used for search matching)
+	 * @param toolReference the reference to the tool being indexed
 	 */
-	void indexTool(String sessionId, String toolName, String toolDescription);		
+	void indexTool(String sessionId, ToolReference toolReference);		
 
 	/**
 	 * Searches for tools matching the given request criteria.

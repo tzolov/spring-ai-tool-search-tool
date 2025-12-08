@@ -148,9 +148,9 @@ public class ToolSearchToolCallAdvisor extends ToolCallAdvisor {
 
 			var toolDefinitions = this.toolCallingManager.resolveToolDefinitions(toolOptions);
 
-			toolDefinitions.stream().forEach(toolDef -> {
-				this.toolSearcher.indexTool(conversationId, toolDef.name(), toolDef.description());
-			});
+			toolDefinitions.stream()
+				.forEach(toolDef -> this.toolSearcher.indexTool(conversationId,
+						ToolReference.builder().toolName(toolDef.name()).summary(toolDef.description()).build()));
 
 			if (!CollectionUtils.isEmpty(toolOptions.getToolCallbacks())) {
 				toolOptions.getToolCallbacks().stream().forEach(toolCallback -> {

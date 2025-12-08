@@ -25,11 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.logaritex.spring.ai.tool.search.SearchType;
+import com.logaritex.spring.ai.tool.search.ToolReference;
 import com.logaritex.spring.ai.tool.search.ToolSearcher;
 import com.logaritex.spring.ai.tool.search.ToolSearchRequest;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse.SearchMetadata;
-import com.logaritex.spring.ai.tool.search.ToolSearchResponse.ToolReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,10 +97,10 @@ public class VectorToolSearcher implements Closeable, ToolSearcher {
 	}
 
 	@Override
-	public void indexTool(String sessionId, String toolName, String toolDescription) {
+	public void indexTool(String sessionId, ToolReference toolReference) {
 		String id = String.valueOf(counter.getAndIncrement());
 		this.sessionToolIds.computeIfAbsent(sessionId, k -> new ArrayList<>()).add(id);
-		this.add(sessionId, id, toolName, toolDescription);
+		this.add(sessionId, id, toolReference.toolName(), toolReference.summary());
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class VectorToolSearcher implements Closeable, ToolSearcher {
 			Double relevanceScore = doc.getScore();
 			String summary = (String) doc.getMetadata().get(METADATA_TOOL_DESCRIPTION);
 
-			return ToolSearchResponse.ToolReference.builder()
+			return ToolReference.builder()
 				.toolName(toolName)
 				.relevanceScore(relevanceScore)
 				.summary(summary)

@@ -26,5 +26,6 @@
         <module>tool-searchers/tool-searcher-regex</module>
 
         <module>examples/tool-search-tool-demo</module>
+        <module>examples/pre-select-tool-demo</module>
     </modules>
 </project>

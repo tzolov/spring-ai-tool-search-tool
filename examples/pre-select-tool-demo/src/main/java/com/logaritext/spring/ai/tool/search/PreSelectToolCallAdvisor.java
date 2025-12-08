@@ -23,9 +23,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import com.logaritex.spring.ai.tool.search.ToolSearcher;
+import com.logaritex.spring.ai.tool.search.ToolReference;
 import com.logaritex.spring.ai.tool.search.ToolSearchRequest;
 import com.logaritex.spring.ai.tool.search.ToolSearchResponse;
+import com.logaritex.spring.ai.tool.search.ToolSearcher;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
@@ -74,9 +75,9 @@ public class PreSelectToolCallAdvisor extends ToolCallAdvisor {
 
 			var toolDefinitions = this.toolCallingManager.resolveToolDefinitions(toolOptions);
 
-			toolDefinitions.stream().forEach(toolDef -> {
-				this.toolSearcher.indexTool(conversationId, toolDef.name(), toolDef.description());
-			});
+			toolDefinitions.stream()
+				.forEach(toolDef -> this.toolSearcher.indexTool(conversationId,
+						ToolReference.builder().toolName(toolDef.name()).summary(toolDef.description()).build()));
 
 			if (!CollectionUtils.isEmpty(toolOptions.getToolCallbacks())) {
 				toolOptions.getToolCallbacks().stream().forEach(toolCallback -> {
