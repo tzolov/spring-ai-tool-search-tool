@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
+import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -172,6 +173,18 @@ public class ToolSearchToolCallAdvisor extends ToolCallAdvisor {
 		}
 
 		return super.doInitializeLoop(chatClientRequest, callAdvisorChain);
+	}
+
+	@Override
+	protected ChatClientResponse doFinalizeLoop(ChatClientResponse chatClientResponse,
+			CallAdvisorChain callAdvisorChain) {
+
+		var toolSearchToolConversationId = chatClientResponse.context().get("toolSearchToolConversationId");
+		if (toolSearchToolConversationId != null) {
+			this.toolSearcher.clearIndex(toolSearchToolConversationId.toString());
+		}
+
+		return super.doFinalizeLoop(chatClientResponse, callAdvisorChain);
 	}
 
 	@Override
