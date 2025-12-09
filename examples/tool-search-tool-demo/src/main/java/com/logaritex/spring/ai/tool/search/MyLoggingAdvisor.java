@@ -1,4 +1,4 @@
-package com.logaritext.spring.ai.tool.search;
+package com.logaritex.spring.ai.tool.search;
 
 import java.util.List;
 import java.util.stream.Collectors;

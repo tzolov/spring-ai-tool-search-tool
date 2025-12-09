@@ -1,4 +1,4 @@
-package com.logaritext.spring.ai.tool.search;
+package com.logaritex.spring.ai.tool.search;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.logaritext.spring.ai.tool.search;
+package com.logaritex.spring.ai.tool.search;
 
 import com.example.tool.search.LuceneToolSearcher;
 import com.example.tool.search.RegexToolSearcher;
@@ -37,12 +37,12 @@ public class Config {
 		return SimpleVectorStore.builder(embeddingModel).build();
 	}
 
-	// @Bean
+	@Bean
 	ToolSearcher vectorToolSearcher(VectorStore vectorStore) {
 		return new VectorToolSearcher(vectorStore);
 	}
 
-	@Bean
+	// @Bean
 	ToolSearcher luceneToolSearcher() {
 		return new LuceneToolSearcher(0.4f);
 	}
