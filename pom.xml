@@ -288,7 +288,7 @@
                         <configuration>
                             <publishingServerId>central</publishingServerId>
                             <excludeArtifacts>
-                                tool-search-tool-parent,tool-search-tool-app
+                                tool-search-tool-parent,examples-parent,tool-search-tool-app
                             </excludeArtifacts>
                             <autoPublish>true</autoPublish>
                         </configuration>
