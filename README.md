@@ -1,3 +1,5 @@
+# This repository is migrated to https://github.com/spring-ai-community/spring-ai-tool-search-tool
+
 # Tool Search Tool for Spring AI
 
 Dynamic tool discovery and selection for Spring AI, enabling LLMs to work efficiently with large tool libraries by discovering tools on-demand instead of loading all definitions upfront.
